@@ -3,11 +3,11 @@ import random
 
 
 class knight:
-    def __init__(self, name):
+    def __init__(self, name, colors):
         self.hp = 3
         self.xp = 0
         self.name = name
-        self.colors = []
+        self.colors = colors
         self.populate_dice()
 
     def populate_dice(self):
@@ -97,4 +97,5 @@ class game:
             else:
                 choice = int(choice)
                 chosen_knight = options[choice]
-                party.append(knight(game_rules.knights[chosen_knight]))
+                party.append(knight(chosen_knights, game_rules.knights[chosen_knight]))
+        game_rules.set_colors(party)
