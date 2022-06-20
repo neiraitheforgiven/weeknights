@@ -71,3 +71,26 @@ class game_rules:
             for color in knight.colors:
                 if color not in self.colors:
                     self.colors.append(color)
+
+
+class game:
+    def __init__():
+        party = []
+        self.game_rules = game_rules()
+        for i in range(4):
+            knights = [
+                knight.key() for knight in game_rules.knights if knight not in party
+            ]
+            options = random.sample(knights, 3)
+            for option in options:
+                i = option.index
+                print(f"({i}) {option}, {game_rules.knights[option]}")
+            choice = ""
+            while choice not in ("1", "2", "3", "4", "q", "Q"):
+                choice = input("Choose a knight or press (Q) to quit!")
+            if choice in ("q", "Q"):
+                exit()
+            else:
+                choice = int(choice)
+                chosen_knight = options[choice]
+                party.append(knight(game_rules.knights[chosen_knight]))
