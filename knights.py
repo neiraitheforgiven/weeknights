@@ -56,7 +56,7 @@ class game_rules:
         self.knights["Elfling"] = ["brown", " purple"]
         self.knights["Fjolla"] = ["blue", "white"]
         self.knights["Gloam Rider"] = ["black", "purple"]
-        self.knights["Glory"] = ["green"]
+        self.knights["Glory"] = ["white", "yellow"]
         self.knights["Gruagach"] = ["purple", "red"]
         self.knights["Kitsune"] = ["blue", "red"]
         self.knights["Leprechan"] = ["green"]
