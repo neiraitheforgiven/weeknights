@@ -22,10 +22,14 @@ class die:
         self.rerolls = 0
         self.min = 1
         self.bonus = 0
+        self.splodey = 0
+        self.count = 1
         self.color = color
 
     def roll(self):
-        dice.roll(f"1d{self.size}r{self.min}+{self.bonus}")
+        dice.roll(
+            f"{self.count}d{self.size}r{self.min}x{self.size - self.splodey}^1+{self.bonus}t"
+        )
 
 
 class monster:
