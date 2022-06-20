@@ -41,32 +41,32 @@ class monster:
 
 
 class game_rules:
-    def __init__(self, party):
-        # unselected colors will not be in the game
-        self.knights = {}
-        self.name["Aziza"] = ["black", "brown"]
-        self.name["Black Angus"] = ["black"]
-        self.name["Bombinus"] = ["black", "yellow"]
-        self.name["Brownie"] = ["brown"]
-        self.name["Changeling"] = ["pink", "purple"]
-        self.name["Elfling"] = ["brown", " purple"]
-        self.name["Fjolla"] = ["blue", "white"]
-        self.name["Gloam Rider"] = ["black", "purple"]
-        self.name["Glory"] = ["green"]
-        self.name["Gruagach"] = ["purple", "red"]
-        self.name["Kitsune"] = ["blue", "red"]
-        self.name["Leprechan"] = ["green"]
-        self.name["Menehune"] = ["brown", "red"]
-        self.name["Naia"] = ["green", "yellow"]
-        self.name["Peri"] = ["pink", "yellow"]
-        self.name["Sugarplum"] = ["blue", "pink"]
-        self.name["The Godmother"] = ["blue"]
-        self.name["Tinkerbelle"] = ["brown", "pink"]
-        self.name["Tooth Collector"] = ["green", "pink"]
-        self.name["Will o' the Wisp"] = ["red", "white"]
-
-    def set_colors(self):
+    def __init__(self):
         self.colors = []
+        self.knights = {}
+        self.knights["Aziza"] = ["black", "brown"]
+        self.knights["Black Angus"] = ["black"]
+        self.knights["Bombinus"] = ["black", "yellow"]
+        self.knights["Brownie"] = ["brown"]
+        self.knights["Changeling"] = ["pink", "purple"]
+        self.knights["Elfling"] = ["brown", " purple"]
+        self.knights["Fjolla"] = ["blue", "white"]
+        self.knights["Gloam Rider"] = ["black", "purple"]
+        self.knights["Glory"] = ["green"]
+        self.knights["Gruagach"] = ["purple", "red"]
+        self.knights["Kitsune"] = ["blue", "red"]
+        self.knights["Leprechan"] = ["green"]
+        self.knights["Menehune"] = ["brown", "red"]
+        self.knights["Naia"] = ["green", "yellow"]
+        self.knights["Peri"] = ["pink", "yellow"]
+        self.knights["Sugarplum"] = ["blue", "pink"]
+        self.knights["The Godmother"] = ["blue"]
+        self.knights["Tinkerbelle"] = ["brown", "pink"]
+        self.knights["Tooth Collector"] = ["green", "pink"]
+        self.knights["Will o' the Wisp"] = ["red", "white"]
+
+    def set_colors(self, party):
+        # unselected colors will not be in the game
         for knight in party:
             for color in knight.colors:
                 if color not in self.colors:
