@@ -26,7 +26,16 @@ class die:
     def roll(self):
         dice.roll(f"1d{self.size}r{self.min}+{self.bonus}")
 
-class monster():
-	
-	def __init__(self):
+
+class monster:
+    def __init__(self, difficulty, game_rules):
+        self.hp = 1
+        self.difficulty = difficulty
+        self.ranks = []
+        for color in game_rules:
+            self.ranks.append(color, 2)
+        for i in range(0, difficulty + 1):
+            random_rank = random.choice(self.ranks)
+            random_rank[1] += 1
+
 
