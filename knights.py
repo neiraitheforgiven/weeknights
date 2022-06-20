@@ -8,64 +8,7 @@ class knight:
         self.xp = 0
         self.name = name
         self.colors = []
-        if self.name:
-            if self.name = "Aziza":
-                self.colors.append["black"]
-                self.colors.append["brown"]
-            elif self.name = "Black Angus":
-                self.colors.append["black"]
-            elif self.name = "Bombinus":
-                self.colors.append["black"]
-                self.colors.append["yellow"]
-            elif self.name = "Brownie":
-                self.colors.append["brown"]
-            elif self.name = "Changeling":
-                self.colors.append["pink"]
-                self.colors.append["purple"]
-            elif self.name = "Elfling":
-                self.colors.append["brown"]
-                self.colors.append["purple"]
-            elif self.name = "Fjolla":
-                self.colors.append["blue"]
-                self.colors.append["white"]
-            elif self.name = "Gloam Rider":
-                self.colors.append["black"]
-                self.colors.append["purple"]
-            elif self.name = "Glory":
-                self.colors.append["green"]
-            elif self.name = "Gruagach":
-                self.colors.append["purple"]
-                self.colors.append["red"]
-            elif self.name = "Kitsune":
-                self.colors.append["blue"]
-                self.colors.append["red"]
-            elif self.name = "Leprechan":
-                self.colors.append["green"]
-            elif self.name = "Menehune":
-                self.colors.append["brown"]
-                self.colors.append["red"]
-            elif self.name = "Naia":
-                self.colors.append["green"]
-                self.colors.append["yellow"]
-            elif self.name = "Peri":
-                self.colors.append["pink"]
-                self.colors.append["yellow"]
-            elif self.name = "Sugarplum":
-                self.colors.append["blue"]
-                self.colors.append["pink"]
-            elif self.name = "The Godmother":
-                self.colors.append["blue"]
-            elif self.name = "Tinkerbelle":
-                self.colors.append["brown"]
-                self.colors.append["pink"]
-            elif self.name = "Tooth Collector":
-                self.colors.append["green"]
-                self.colors.append["pink"]
-            elif self.name = "Will o' the Wisp":
-                self.colors.append["red"]
-                self.colors.append["white"]
         self.populate_dice()
-
 
     def populate_dice(self):
         self.dice = []
@@ -98,13 +41,33 @@ class monster:
 
 
 class game_rules:
-    
     def __init__(self, party):
         # unselected colors will not be in the game
-        colors = []
+        self.knights = {}
+        self.name["Aziza"] = ["black", "brown"]
+        self.name["Black Angus"] = ["black"]
+        self.name["Bombinus"] = ["black", "yellow"]
+        self.name["Brownie"] = ["brown"]
+        self.name["Changeling"] = ["pink", "purple"]
+        self.name["Elfling"] = ["brown", " purple"]
+        self.name["Fjolla"] = ["blue", "white"]
+        self.name["Gloam Rider"] = ["black", "purple"]
+        self.name["Glory"] = ["green"]
+        self.name["Gruagach"] = ["purple", "red"]
+        self.name["Kitsune"] = ["blue", "red"]
+        self.name["Leprechan"] = ["green"]
+        self.name["Menehune"] = ["brown", "red"]
+        self.name["Naia"] = ["green", "yellow"]
+        self.name["Peri"] = ["pink", "yellow"]
+        self.name["Sugarplum"] = ["blue", "pink"]
+        self.name["The Godmother"] = ["blue"]
+        self.name["Tinkerbelle"] = ["brown", "pink"]
+        self.name["Tooth Collector"] = ["green", "pink"]
+        self.name["Will o' the Wisp"] = ["red", "white"]
+
+    def set_colors(self):
+        self.colors = []
         for knight in party:
             for color in knight.colors:
-                if color not in colors:
-                    colors.append(color)
-
-
+                if color not in self.colors:
+                    self.colors.append(color)
