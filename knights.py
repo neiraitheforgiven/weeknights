@@ -68,6 +68,12 @@ class game_rules:
         self.knights["Tinkerbelle"] = ["brown", "pink"]
         self.knights["Tooth Collector"] = ["green", "pink"]
         self.knights["Will o' the Wisp"] = ["red", "white"]
+        self.tiles = {}
+        self.tiles["shop"] = 8
+        self.tiles["camp"] = 12
+        self.tiles["quest"] = 12
+        self.tiles["elite"] = 10
+        self.tiles["combat"] = 53
 
     def set_colors(self, party):
         # unselected colors will not be in the game
