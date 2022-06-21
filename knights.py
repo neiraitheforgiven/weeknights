@@ -97,6 +97,7 @@ class map:
             self.rings.append(rooms)
         self.generate_paths([0, 2, 4, 6])
         self.apply_types()
+        self.make_sibling_connections()
         for ring in self.rings:
             print(
                 [room.type or "untyped" if room is not None else None for room in ring]
@@ -152,6 +153,17 @@ class map:
         room = random.randint(lower_limit, upper_limit)
         return room
 
+    def make_sibling_connections(self):
+        for ring in self.rings:
+            rooms = [room for room in ring if room]
+            for room in rooms:
+                next_room, distance = room.get_next_room(ring)
+                if next_room and distance:
+                    if room.type == "combat" or room.type == next_room.type:
+                        proceed = random.choice(range(distance))
+                        if proceed == 0:
+                            room.sibling_connection = next_room
+
 
 class map_room:
     def __init__(self):
@@ -159,11 +171,26 @@ class map_room:
         self.child_rooms = []
         self.parent_rooms = []
         self.owed_paths = 0
+        self.sibling_connection = None
+
+    def get_next_room(self, ring):
+        my_num = ring.index(self)
+        higher_rooms = [
+            ring.index(room) for room in ring if room and ring.index(room) > my_num
+        ]
+        if higher_rooms:
+            next_room = ring[min(higher_rooms)]
+            distance = ring.index(next_room) - my_num
+        if not higher_rooms:
+            all_rooms = [ring.index(room) for room in ring if room]
+            next_room = ring[min(all_rooms)]
+            distance = len(ring) - my_num + ring.index(next_room)
+        if distance:
+            return next_room, distance
 
     def set_type_from_rules(self, ring, game_rules):
         tiles = [tile for tile in game_rules.tiles]
         weights = [game_rules.tiles[tile] for tile in game_rules.tiles]
-        print(f"{tiles}, {weights}")
         picked_types = random.choices(tiles, weights, k=1)
         picked_type = picked_types[0]
         if picked_type != "combat":
