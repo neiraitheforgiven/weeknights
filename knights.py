@@ -93,14 +93,21 @@ class map:
         for i in range(self.depth + 1):
             rooms = list()
             for j in range((i + 1) * 8):
-                print(f"appending {j} to {i}")
                 rooms.append(None)
             self.rings.append(rooms)
         self.generate_paths([0, 2, 4, 6])
+        self.apply_types()
         for ring in self.rings:
             print(
                 [room.type or "untyped" if room is not None else None for room in ring]
             )
+
+    def apply_types(self):
+        for i, ring in enumerate(self.rings):
+            rooms = [room for room in ring if room]
+            for room in rooms:
+                if not room.type:
+                    room.set_type_from_rules(i, self.game_rules)
 
     def generate_paths(self, first_room_seeds):
         # combat_unlocked = True
@@ -152,6 +159,25 @@ class map_room:
         self.child_rooms = []
         self.parent_rooms = []
         self.owed_paths = 0
+
+    def set_type_from_rules(self, ring, game_rules):
+        tiles = [tile for tile in game_rules.tiles]
+        weights = [game_rules.tiles[tile] for tile in game_rules.tiles]
+        print(f"{tiles}, {weights}")
+        picked_types = random.choices(tiles, weights, k=1)
+        picked_type = picked_types[0]
+        if picked_type != "combat":
+            for parent in self.parent_rooms:
+                if parent.type == picked_type:
+                    self.set_type_from_rules(ring, game_rules)
+                    return
+        if ring < 2 and picked_type == "shop":
+            self.set_type_from_rules(ring, game_rules)
+            return
+        if ring < 4 and picked_type in ("camp", "elite"):
+            self.set_type_from_rules(ring, game_rules)
+            return
+        self.type = picked_type
 
 
 class game:
