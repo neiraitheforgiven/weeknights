@@ -90,49 +90,51 @@ class map:
         self.game_rules = game_rules
         self.rings = []
         self.depth = depth
-        for i in range(self.depth):
+        for i in range(self.depth + 1):
             rooms = list()
             for j in range((i + 1) * 8):
                 print(f"appending {j} to {i}")
                 rooms.append(None)
             self.rings.append(rooms)
-        self.generate_path(0)
-        self.generate_path(2)
-        self.generate_path(4)
-        self.generate_path(6)
+        self.generate_paths([0, 2, 4, 6])
         for ring in self.rings:
             print(
                 [room.type or "untyped" if room is not None else None for room in ring]
             )
 
-    def generate_path(self, first_room):
-        current_room = room()
-        combat_unlocked = True
-        self.rings[0][first_room] = room()
-        self.rings[0][first_room].type = "combat"
-        remembered_room = first_room
-        ring = 1
-        while ring < self.depth:
-            parent_room = None
-            random_room = self.get_random_cell_of_ring(
-                self.rings[ring], remembered_room
-            )
-            if self.rings[ring][random_room]:
-                parent_room = self.rings[ring][random_room]
-            else:
-                parent_room = room()
-            self.rings[ring][random_room] = parent_room
+    def generate_paths(self, first_room_seeds):
+        # combat_unlocked = True
+        for room in first_room_seeds:
+            self.rings[0][room] = map_room()
+            self.rings[0][room].type = "combat"
+            self.rings[0][room].owed_paths += 1
+        for ring in range(self.depth):
+            # get all the rooms on this floor
+            rooms = [room for room in self.rings[ring] if room]
+            # get four random rooms on this floor and increment their owed_paths by 1
+            splitting_rooms = random.sample(rooms, 4)
+            for splitting_room in splitting_rooms:
+                splitting_room.owed_paths += 1
+            # iterate through all rooms and connect them
+            target_ring = ring + 1
+            for source_room in rooms:
+                for connection in range(source_room.owed_paths):
+                    target_room = None
+                    random_room_id = self.get_random_cell_of_ring(
+                        self.rings[target_ring], self.rings[ring].index(source_room)
+                    )
+                    # if this room is already populated, don't change it
+                    if not self.rings[target_ring][random_room_id]:
+                        self.rings[target_ring][random_room_id] = map_room()
+                    target_room = self.rings[target_ring][random_room_id]
 
-            if not current_room in parent_room.child_rooms:
-                parent_room.child_rooms.append(current_room)
+                    if target_room not in source_room.child_rooms:
+                        source_room.child_rooms.append(target_room)
 
-            if not parent_room in current_room.parent_rooms:
-                current_room.parent_rooms.append(parent_room)
+                    if source_room not in target_room.parent_rooms:
+                        target_room.parent_rooms.append(source_room)
 
-            current_room = parent_room
-            remembered_room = random_room
-
-            ring += 1
+                    target_room.owed_paths += 1
 
     def get_random_cell_of_ring(self, ring, connection_room=None):
         lower_limit = 0
@@ -144,11 +146,12 @@ class map:
         return room
 
 
-class room:
+class map_room:
     def __init__(self):
         self.type = None
         self.child_rooms = []
         self.parent_rooms = []
+        self.owed_paths = 0
 
 
 class game:
