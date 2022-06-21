@@ -103,3 +103,11 @@ class game:
                 self.party.append(
                     knight(chosen_knight, self.game_rules.knights[chosen_knight])
                 )
+        self.game_rules.set_colors(self.party)
+        print("Party:")
+        print(f"{[party_member.name for party_member in self.party]}")
+        print("Colors:")
+        print(f"{self.game_rules.colors}")
+
+
+game()
