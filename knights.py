@@ -101,7 +101,9 @@ class map:
         self.generate_path(4)
         self.generate_path(6)
         for ring in self.rings:
-            print([room.type if room is not None else None for room in ring])
+            print(
+                [room.type or "untyped" if room is not None else None for room in ring]
+            )
 
     def generate_path(self, first_room):
         current_room = room()
@@ -110,7 +112,7 @@ class map:
         self.rings[0][first_room].type = "combat"
         remembered_room = first_room
         ring = 1
-        while ring < self.depth - 1:
+        while ring < self.depth:
             parent_room = None
             random_room = self.get_random_cell_of_ring(
                 self.rings[ring], remembered_room
