@@ -152,14 +152,14 @@ class map:
             gapped_row = []
             for cell in row:
                 gapped_row.append(cell)
-                gapped_row.append("hgap")
+                gapped_row.append(map_room("hgap"))
             # remove the last gap
             gapped_row.pop()
             drawing_with_gaps.append(gapped_row)
             gap_row = []
             for i in range(depth):
-                gap_row.append("vgap")
-                gap_row.append("xgap")
+                gap_row.append(map_room("vgap"))
+                gap_row.append(map_room("xgap"))
             gap_row.pop()
             drawing_with_gaps.append(gap_row)
         drawing_with_gaps.pop()
