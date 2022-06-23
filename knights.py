@@ -95,13 +95,14 @@ class map:
             for j in range((i + 1) * 8):
                 rooms.append(None)
             self.rings.append(rooms)
-        self.generate_paths([0, 2, 4, 6])
+        self.generate_paths([1, 3, 5, 7])
         self.apply_types()
         self.make_sibling_connections()
         for ring in self.rings:
             print(
                 [room.type or "untyped" if room is not None else None for room in ring]
             )
+        self.draw_map(self.depth)
 
     def apply_types(self):
         for i, ring in enumerate(self.rings):
@@ -109,6 +110,70 @@ class map:
             for room in rooms:
                 if not room.type:
                     room.set_type_from_rules(i, self.game_rules)
+
+    def draw_map(self, depth):
+        # draw map with no gapping first
+        drawing = []
+        # first create a blank set with no gaps
+        for i in range(depth):
+            drawing.append([None for x in range(depth)])
+        # that should give you a 'square' of Nones. Now...
+        for i, ring in reversed(list(enumerate(self.rings))):
+            current_cell_from_start = 0
+            current_cell_from_end = len(ring) - 1
+            # get the first drawing row that contains ONLY Nones
+            rows_with_empty = [
+                row for row in drawing if not any([cell for cell in row if cell])
+            ]
+            straight_row = next(row for row in rows_with_empty)
+            reverse_row = next(reversed([row for row in rows_with_empty]))
+            the_rest_of_the_rows = [
+                row for row in rows_with_empty if row not in (straight_row, reverse_row)
+            ]
+            for cid, cell in enumerate(straight_row):
+                straight_row[cid] = ring[current_cell_from_start]
+                current_cell_from_start += 1
+            for row in the_rest_of_the_rows:
+                first_cell = next([row.index(cell) for cell in row if not cell])
+                last_cell = next(
+                    reversed([row.index(cell) for cell in row if not cell])
+                )
+                row[last_cell] = ring[current_cell_from_start]
+                current_cell_from_start += 1
+                row[first_cell] = ring[current_cell_from_end]
+                current_cell_from_start -= 1
+            for cid, cell in enumerate(reverse_row):
+                reverse_row[cid] = ring[current_cell_from_end]
+                current_cell_from_start -= 1
+            print(f"ring {i} processed")
+        # now add a horizontal gap between each of the elements in each row
+        drawing_with_gaps = []
+        for row in drawing:
+            gapped_row = []
+            for cell in row:
+                gapped_row.append(cell)
+                gapped_row.append("hgap")
+            # remove the last gap
+            gapped_row.pop()
+            drawing_with_gaps.append(gapped_row)
+            gap_row = []
+            for i in range(depth):
+                gap_row.append("vgap")
+                gap_row.append("xgap")
+            gap_row.pop()
+            drawing_with_gaps.append(gap_row)
+        drawing_with_gaps.pop()
+        # if I did that right, I should get all the squares:
+        for row in drawing_with_gaps:
+            row_print = []
+            for cell in row:
+                if isinstance(cell, str):
+                    row_print.append(cell)
+                elif isinstance(cell, map_room):
+                    row_print.append(cell.type or "untyped")
+                else:
+                    row_print.append(None)
+            print(row_print)
 
     def generate_paths(self, first_room_seeds):
         # combat_unlocked = True
