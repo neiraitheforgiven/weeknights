@@ -98,10 +98,6 @@ class map:
         self.generate_paths([1, 3, 5, 7])
         self.apply_types()
         self.make_sibling_connections()
-        for ring in self.rings:
-            print(
-                [room.type or "untyped" if room is not None else None for room in ring]
-            )
         self.draw_map(self.depth)
 
     def apply_types(self):
@@ -179,16 +175,20 @@ class map:
         for y, row in enumerate(drawing_with_gaps):
             for x, cell in enumerate(row):
                 if cell:
-                    pass
+                    if not cell.type:
+                        cell.type = "void"
                 else:
-                    cell = map_room("void")
+                    drawing_with_gaps[y][x] = map_room("void")
+                    cell = drawing_with_gaps[y][x]
                 cell.x = x
                 cell.y = y
         # now, draw paths for all of the kinds of gaps
         for y, row in enumerate(drawing_with_gaps):
             for x, cell in enumerate(row):
                 if cell.type == "hgap":
-                    left_cell, right_cell = self.get_left_and_right_cells(row, cell)
+                    left_cell, right_cell = self.get_left_and_right_cells(
+                        drawing_with_gaps, cell
+                    )
                     if left_cell and right_cell:
                         if (
                             (
@@ -204,7 +204,9 @@ class map:
                         ):
                             cell.type = "hpath"
                 elif cell.type == "vgap":
-                    up_cell, down_cell = self.get_up_and_down_cells(row, cell)
+                    up_cell, down_cell = self.get_up_and_down_cells(
+                        drawing_with_gaps, cell
+                    )
                     if up_cell and down_cell:
                         if (
                             (up_cell.child_rooms and down_cell in up_cell.child_rooms)
@@ -222,7 +224,7 @@ class map:
                         right_down_cell,
                         left_down_cell,
                         right_up_cell,
-                    ) = self.get_corner_cells(row, cell)
+                    ) = self.get_corner_cells(drawing_with_gaps, cell)
                     ascend = False
                     descend = False
                     if (
@@ -247,7 +249,8 @@ class map:
                         if ascend:
                             cell.type = "ascpath"
                         elif descend:
-                            cell.type = "descend"
+                            cell.type = "descpath"
+        self.pretty_print_drawing(drawing_with_gaps)
 
     def generate_paths(self, first_room_seeds):
         # combat_unlocked = True
@@ -283,35 +286,36 @@ class map:
 
                     target_room.owed_paths += 1
 
-    def get_corner_cells(self, row, cell):
+    def get_corner_cells(self, drawing, cell):
         source_x = cell.x
         source_y = cell.y
-        if source_x in (0, len(row) - 1) or source_y in (0, len(self) - 1):
+        if source_x in (0, len(drawing) - 1) or source_y in (0, len(drawing) - 1):
             return
         else:
-            left_up_cell = self[source_y - 1][source_x - 1]
-            left_down_cell = self[source_y + 1][source_x - 1]
-            right_up_cell = self[source_y - 1][source_x + 1]
-            right_down_cell = self[source_y + 1][source_x + 1]
+            left_up_cell = drawing[source_y - 1][source_x - 1]
+            left_down_cell = drawing[source_y + 1][source_x - 1]
+            right_up_cell = drawing[source_y - 1][source_x + 1]
+            right_down_cell = drawing[source_y + 1][source_x + 1]
         return left_up_cell, right_down_cell, left_down_cell, right_up_cell
 
-    def get_left_and_right_cells(self, row, cell):
-        source_x = cell.x
-        if source_x in (0, len(row) - 1):
-            return
-        else:
-            left_cell = row[source_x - 1]
-            right_cell = row[source_x + 1]
-            return left_cell, right_cell
-
-    def get_up_and_down_cells(self, row, cell):
+    def get_left_and_right_cells(self, drawing, cell):
         source_x = cell.x
         source_y = cell.y
-        if source_y in (0, len(self) - 1):
+        if source_x in (0, len(drawing) - 1):
             return
         else:
-            up_cell = self[source_y - 1][source_x]
-            down_cell = self[source_y + 1][source_x]
+            left_cell = drawing[source_y][source_x - 1]
+            right_cell = drawing[source_y][source_x + 1]
+            return left_cell, right_cell
+
+    def get_up_and_down_cells(self, drawing, cell):
+        source_x = cell.x
+        source_y = cell.y
+        if source_y in (0, len(drawing) - 1):
+            return
+        else:
+            up_cell = drawing[source_y - 1][source_x]
+            down_cell = drawing[source_y + 1][source_x]
             return down_cell, up_cell
 
     def get_random_cell_of_ring(self, ring, connection_room=None):
@@ -333,6 +337,36 @@ class map:
                         proceed = random.choice(range(distance))
                         if proceed == 0:
                             room.sibling_connection = next_room
+
+    def pretty_print_drawing(self, drawing):
+        for row in drawing:
+            print_row = ""
+            for cell in row:
+                if not cell:
+                    print_row += " "
+                elif cell.type in ("vgap", "hgap", "xgap", "void"):
+                    print_row += " "
+                elif cell.type == "elite":
+                    print_row += "E"
+                elif cell.type == "combat":
+                    print_row += "c"
+                elif cell.type == "shop":
+                    print_row += "$"
+                elif cell.type == "quest":
+                    print_row += "?"
+                elif cell.type == "hpath":
+                    print_row += "-"
+                elif cell.type == "vpath":
+                    print_row += "|"
+                elif cell.type == "ascpath":
+                    print_row += "\\"
+                elif cell.type == "descpath":
+                    print_row += "/"
+                elif cell.type == "xpath":
+                    print_row += "X"
+                elif cell.type == "camp":
+                    print_row += "r"
+            print(print_row)
 
 
 class map_room:
