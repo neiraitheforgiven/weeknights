@@ -174,6 +174,80 @@ class map:
                 else:
                     row_print.append(None)
             print(row_print)
+        # now go through every tile and give it x, y coordinates
+        # if the tile type is None, replace it with a tile of type 'void'
+        for y, row in enumerate(drawing_with_gaps):
+            for x, cell in enumerate(row):
+                if cell:
+                    pass
+                else:
+                    cell = map_room("void")
+                cell.x = x
+                cell.y = y
+        # now, draw paths for all of the kinds of gaps
+        for y, row in enumerate(drawing_with_gaps):
+            for x, cell in enumerate(row):
+                if cell.type == "hgap":
+                    left_cell, right_cell = self.get_left_and_right_cells(row, cell)
+                    if left_cell and right_cell:
+                        if (
+                            (
+                                right_cell.child_rooms
+                                and left_cell in right_cell.child_rooms
+                            )
+                            or (
+                                right_cell.parent_rooms
+                                and left_cell in right_cell.parent_rooms
+                            )
+                            or (left_cell.sibling_connection == right_cell)
+                            or (right_cell.sibling_connection == left_cell)
+                        ):
+                            cell.type = "hpath"
+                elif cell.type == "vgap":
+                    up_cell, down_cell = self.get_up_and_down_cells(row, cell)
+                    if up_cell and down_cell:
+                        if (
+                            (up_cell.child_rooms and down_cell in up_cell.child_rooms)
+                            or (
+                                up_cell.parent_rooms
+                                and down_cell in up_cell.parent_rooms
+                            )
+                            or (down_cell.sibling_connection == up_cell)
+                            or (up_cell.sibling_connection == down_cell)
+                        ):
+                            cell.type = "vpath"
+                elif cell.type == "xgap":
+                    (
+                        left_up_cell,
+                        right_down_cell,
+                        left_down_cell,
+                        right_up_cell,
+                    ) = self.get_corner_cells(row, cell)
+                    ascend = False
+                    descend = False
+                    if (
+                        left_up_cell.child_rooms
+                        and right_down_cell in left_up_cell.child_rooms
+                    ) or (
+                        left_up_cell.parent_rooms
+                        and right_down_cell in left_up_cell.parent_rooms
+                    ):
+                        ascend = True
+                    if (
+                        left_down_cell.child_rooms
+                        and right_up_cell in left_down_cell.child_rooms
+                    ) or (
+                        left_down_cell.parent_rooms
+                        and right_up_cell in left_down_cell.parent_rooms
+                    ):
+                        descend = True
+                    if ascend and descend:
+                        cell.type = "xpath"
+                    else:
+                        if ascend:
+                            cell.type = "ascpath"
+                        elif descend:
+                            cell.type = "descend"
 
     def generate_paths(self, first_room_seeds):
         # combat_unlocked = True
@@ -209,6 +283,37 @@ class map:
 
                     target_room.owed_paths += 1
 
+    def get_corner_cells(self, row, cell):
+        source_x = cell.x
+        source_y = cell.y
+        if source_x in (0, len(row) - 1) or source_y in (0, len(self) - 1):
+            return
+        else:
+            left_up_cell = self[source_y - 1][source_x - 1]
+            left_down_cell = self[source_y + 1][source_x - 1]
+            right_up_cell = self[source_y - 1][source_x + 1]
+            right_down_cell = self[source_y + 1][source_x + 1]
+        return left_up_cell, right_down_cell, left_down_cell, right_up_cell
+
+    def get_left_and_right_cells(self, row, cell):
+        source_x = cell.x
+        if source_x in (0, len(row) - 1):
+            return
+        else:
+            left_cell = row[source_x - 1]
+            right_cell = row[source_x + 1]
+            return left_cell, right_cell
+
+    def get_up_and_down_cells(self, row, cell):
+        source_x = cell.x
+        source_y = cell.y
+        if source_y in (0, len(self) - 1):
+            return
+        else:
+            up_cell = self[source_y - 1][source_x]
+            down_cell = self[source_y + 1][source_x]
+            return down_cell, up_cell
+
     def get_random_cell_of_ring(self, ring, connection_room=None):
         lower_limit = 0
         upper_limit = len(ring) - 1
@@ -231,12 +336,14 @@ class map:
 
 
 class map_room:
-    def __init__(self):
-        self.type = None
+    def __init__(self, map_type=None):
+        self.type = map_type
         self.child_rooms = []
         self.parent_rooms = []
         self.owed_paths = 0
         self.sibling_connection = None
+        self.x = None
+        self.y = None
 
     def get_next_room(self, ring):
         my_num = ring.index(self)
