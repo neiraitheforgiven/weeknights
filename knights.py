@@ -118,45 +118,46 @@ class map:
         for i, ring in reversed(list(enumerate(self.rings))):
             print(f"ring {i}: {ring}")
             offset = depth - (i + 1)
+            backset = (len(drawing) - 1) - offset
+            print(f"offset: {offset}")
+            print(f"backset: {backset}")
             current_cell_from_start = 0
-            current_cell_from_end = len(ring) - 1
             # get the first drawing row that contains ONLY Nones
             straight_row = drawing[offset]
-            reverse_row = drawing[(len(drawing) - 1) - offset]
-            the_rest_of_the_rows = drawing[offset + 1 : (len(drawing) - 1) - offset]
+            reverse_row = drawing[backset]
+            the_rest_of_the_rows = drawing[offset + 1 : backset]
             print("***STRAIGHT***")
             for cid, cell in enumerate(straight_row):
-                if offset <= cid <= (len(drawing) - 1) - offset:
+                if offset <= cid <= backset:
                     print(
                         f"replacing row {offset} cell {cid} with ring {current_cell_from_start} {ring[current_cell_from_start]}"
                     )
                     drawing[offset][cid] = ring[current_cell_from_start]
                     current_cell_from_start += 1
-            print("***EDGING***")
+            print("***RIGHT EDGING***")
             for rid, row in enumerate(the_rest_of_the_rows):
-                if offset < rid < (len(drawing) - 1) - offset:
-                    first_cell = offset
-                    last_cell = (len(drawing) - 1) - first_cell
-                    print(
-                        f"replacing row {rid} cell {last_cell} with ring {current_cell_from_start} {ring[current_cell_from_start]}"
-                    )
-                    drawing[rid][last_cell] = ring[current_cell_from_start]
-                    current_cell_from_start += 1
-                    print(
-                        f"replacing row {rid} cell {first_cell} with ring {current_cell_from_end} {ring[current_cell_from_end]}"
-                    )
-                    drawing[rid][first_cell] = ring[current_cell_from_end]
-                    current_cell_from_end -= 1
+                cell = backset
+                print(
+                    f"replacing row {rid+offset + 1} cell {cell} with ring {current_cell_from_start} {ring[current_cell_from_start]}"
+                )
+                drawing[rid + offset + 1][cell] = ring[current_cell_from_start]
+                current_cell_from_start += 1
             print("***REVERSAL***")
-            for cid, cell in enumerate(reverse_row):
-                if offset <= cid <= (len(drawing) - 1) - offset:
+            for cid, cell in reversed(list(enumerate(reverse_row))):
+                if offset <= cid <= backset:
                     print(
-                        f"replacing row {(len(drawing) - 1) - offset} cell {cid} with ring {current_cell_from_end}  {ring[current_cell_from_end]}"
+                        f"replacing row {backset} cell {cid} with ring {current_cell_from_start} {ring[current_cell_from_start]}"
                     )
-                    drawing[(len(drawing) - 1) - offset][cid] = ring[
-                        current_cell_from_end
-                    ]
-                    current_cell_from_end -= 1
+                    drawing[(backset) - offset][cid] = ring[current_cell_from_start]
+                    current_cell_from_start += 1
+            print("***LEFT EDGING***")
+            for rid, row in reversed(list(enumerate(the_rest_of_the_rows))):
+                cell = offset
+                print(
+                    f"replacing row {rid + offset + 1} cell {cell} with ring {current_cell_from_start} {ring[current_cell_from_start]}"
+                )
+                drawing[rid + offset + 1][cell] = ring[current_cell_from_start]
+                current_cell_from_start += 1
             print(f"ring {i} processed")
         # there will be a central tile that should become the palace
         print(f"drawing")
