@@ -181,6 +181,23 @@ class map:
                     cell = drawing_with_gaps[y][x]
                 cell.x = x
                 cell.y = y
+        for row in drawing_with_gaps:
+            for cell in row:
+                if cell and "gap" not in cell.type and "void" not in cell.type:
+                    print(f"cell {cell.type} at {cell.x}, {cell.y}:")
+                    print("  child_rooms:")
+                    print(f"    {[concell.type for concell in cell.child_rooms]}")
+                    print(f"    {[concell.x for concell in cell.child_rooms]}")
+                    print(f"    {[concell.y for concell in cell.child_rooms]}")
+                    print("  parent_rooms:")
+                    print(f"    {[concell.type for concell in cell.parent_rooms]}")
+                    print(f"    {[concell.x for concell in cell.parent_rooms]}")
+                    print(f"    {[concell.y for concell in cell.parent_rooms]}")
+                    if cell.sibling_connection:
+                        print("  sibling_connection:")
+                        print(
+                            f"{cell.sibling_connection.type} {cell.sibling_connection.x}, {cell.sibling_connection.y}"
+                        )
         # now, draw paths for all of the kinds of gaps
         for y, row in enumerate(drawing_with_gaps):
             for x, cell in enumerate(row):
