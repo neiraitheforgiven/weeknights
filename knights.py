@@ -119,48 +119,28 @@ class map:
             print(f"ring {i}: {ring}")
             offset = depth - (i + 1)
             backset = (len(drawing) - 1) - offset
-            print(f"offset: {offset}")
-            print(f"backset: {backset}")
             current_cell_from_start = 0
             # get the first drawing row that contains ONLY Nones
             straight_row = drawing[offset]
             reverse_row = drawing[backset]
             the_rest_of_the_rows = drawing[offset + 1 : backset]
-            print("***STRAIGHT***")
             for cid, cell in enumerate(straight_row):
                 if offset <= cid <= backset:
-                    print(
-                        f"replacing row {offset} cell {cid} with ring {current_cell_from_start} {ring[current_cell_from_start]}"
-                    )
                     drawing[offset][cid] = ring[current_cell_from_start]
                     current_cell_from_start += 1
-            print("***RIGHT EDGING***")
             for rid, row in enumerate(the_rest_of_the_rows):
                 cell = backset
-                print(
-                    f"replacing row {rid+offset + 1} cell {cell} with ring {current_cell_from_start} {ring[current_cell_from_start]}"
-                )
                 drawing[rid + offset + 1][cell] = ring[current_cell_from_start]
                 current_cell_from_start += 1
-            print("***REVERSAL***")
             for cid, cell in reversed(list(enumerate(reverse_row))):
                 if offset <= cid <= backset:
-                    print(
-                        f"replacing row {backset} cell {cid} with ring {current_cell_from_start} {ring[current_cell_from_start]}"
-                    )
                     drawing[(backset) - offset][cid] = ring[current_cell_from_start]
                     current_cell_from_start += 1
-            print("***LEFT EDGING***")
             for rid, row in reversed(list(enumerate(the_rest_of_the_rows))):
                 cell = offset
-                print(
-                    f"replacing row {rid + offset + 1} cell {cell} with ring {current_cell_from_start} {ring[current_cell_from_start]}"
-                )
                 drawing[rid + offset + 1][cell] = ring[current_cell_from_start]
                 current_cell_from_start += 1
-            print(f"ring {i} processed")
         # there will be a central tile that should become the palace
-        print(f"drawing")
         drawing[depth + 1][depth + 1] = map_room("palace")
         # now add a horizontal gap between each of the elements in each row
         drawing_with_gaps = []
@@ -274,8 +254,7 @@ class map:
     def generate_paths(self, first_room_seeds):
         # combat_unlocked = True
         for room in first_room_seeds:
-            self.rings[0][room] = map_room()
-            self.rings[0][room].type = "combat"
+            self.rings[0][room] = map_room("combat", room)
             self.rings[0][room].owed_paths += 1
         for ring in range(self.depth):
             # get all the rooms on this floor
@@ -287,23 +266,27 @@ class map:
             # iterate through all rooms and connect them
             target_ring = ring + 1
             if target_ring < self.depth:
-                for source_room in rooms:
+                for i, source_room in enumerate(rooms):
                     for connection in range(source_room.owed_paths):
                         target_room = None
+                        index_with_offset = (source_room.source_id * (ring + 2)) + (
+                            (source_room.offset_from_source * ring)
+                        )
                         random_room_id = self.get_random_cell_of_ring(
-                            self.rings[target_ring], self.rings[ring].index(source_room)
+                            self.rings[target_ring], index_with_offset
                         )
                         # if this room is already populated, don't change it
                         if not self.rings[target_ring][random_room_id]:
                             self.rings[target_ring][random_room_id] = map_room()
                         target_room = self.rings[target_ring][random_room_id]
-
+                        target_room.source_id = source_room.source_id
+                        target_room.offset_from_source = (
+                            random_room_id - index_with_offset
+                        )
                         if target_room not in source_room.child_rooms:
                             source_room.child_rooms.append(target_room)
-
                         if source_room not in target_room.parent_rooms:
                             target_room.parent_rooms.append(source_room)
-
                         target_room.owed_paths += 1
 
     def get_corner_cells(self, drawing, cell):
@@ -393,12 +376,14 @@ class map:
 
 
 class map_room:
-    def __init__(self, map_type=None):
+    def __init__(self, map_type=None, source_id=None):
         self.type = map_type
         self.child_rooms = []
         self.parent_rooms = []
         self.owed_paths = 0
         self.sibling_connection = None
+        self.source_id = source_id
+        self.offset_from_source = 0
         self.x = None
         self.y = None
 
