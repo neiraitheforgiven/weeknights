@@ -153,7 +153,7 @@ class map:
             gapped_row.pop()
             drawing_with_gaps.append(gapped_row)
             gap_row = []
-            for i in range(depth):
+            for i in range(size):
                 gap_row.append(map_room("vgap"))
                 gap_row.append(map_room("xgap"))
             gap_row.pop()
