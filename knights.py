@@ -87,7 +87,7 @@ class game_rules:
 class map:
     """Heavily borrowed from aztuk's reverse engineered Slay the Spire map generator"""
 
-    def __init__(self, game_rules, depth=6):
+    def __init__(self, game_rules, depth=8):
         self.game_rules = game_rules
         self.rings = []
         self.depth = depth
@@ -141,9 +141,6 @@ class map:
                 cell = offset
                 drawing[rid + offset + 1][cell] = ring[current_cell_from_start]
                 current_cell_from_start += 1
-            print(f"{i}: {[cell.id if cell else 'None' for cell in ring]}")
-        for row in drawing:
-            print(f"{[cell.id if cell else 'None' for cell in row]}")
         # there will be a central tile that should become the palace
         drawing[depth][depth] = map_room("palace")
         drawing[depth][depth].child_rooms = self.starter_tiles
@@ -263,11 +260,6 @@ class map:
         self.pretty_print_drawing(drawing_with_gaps)
 
     def fix_alignment(self, drawing_with_gaps):
-        print("FIXING ALIGNMENT")
-        for row in drawing_with_gaps:
-            print(
-                f'{[cell.id if cell and cell.type in ("elite", "combat", "shop", "quest", "camp") else " " for cell in row]}'
-            )
         # there is a bug where a room can end up too far away from its parents.
         # move rooms to fix that problem
         for r, row in enumerate(drawing_with_gaps):
@@ -277,13 +269,7 @@ class map:
                     max_x = None
                     min_y = None
                     max_y = None
-                    print(
-                        f"checking alignment of row {r} cell {c} {cell.type} {cell.id} at {cell.x},{cell.y}..."
-                    )
                     for parent in cell.parent_rooms:
-                        print(
-                            f"    ...against parent {parent.type} {parent.id} at {parent.x},{parent.y}"
-                        )
                         parent_x = parent.x
                         if (min_x is not None and parent_x < min_x) or min_x is None:
                             min_x = parent_x
@@ -300,34 +286,39 @@ class map:
                     x_updated = False
                     y_updated = False
                     if x_coord < max_x - 2:
-                        print(f"x_coord {x_coord} below {max_x - 2}")
                         x_coord = max_x - 2
                         x_updated = True
                     if x_coord > min_x + 2:
-                        print(f"x_coord {x_coord} above {min_x + 2}")
                         if not x_updated:
                             x_coord = min_x + 2
                         else:
                             conflict = True
                     if y_coord < max_y - 2:
-                        print(f"y_coord {y_coord} below {min_y - 2}")
                         y_coord = max_y - 2
                         y_updated = True
                     if y_coord > min_y + 2:
-                        print(f"y_coord {y_coord} above {min_y + 2}")
                         if not y_updated:
                             y_coord = min_y + 2
                         else:
                             conflict = True
                     if conflict:
-                        print("removing conflicting parent!")
                         cell.parent_rooms.pop()
                         return drawing_with_gaps, True
                     if x_coord != cell.x or y_coord != cell.y:
-                        print(
-                            f"moving row {r} cell {c} {cell.type} {cell.id} from {cell.x},{cell.y} to {x_coord},{y_coord}"
-                        )
                         # move the room
+                        incumbent = drawing_with_gaps[y_coord][x_coord]
+                        if incumbent:
+                            if incumbent.child_rooms is not None:
+                                for child_room in incumbent.child_rooms:
+                                    cell.child_rooms.append(child_room)
+                                    cell.child_rooms = list(set(cell.child_rooms))
+                                for child_room in incumbent.child_rooms:
+                                    child_room.parent_rooms.append(cell)
+                                    child_room.parent_rooms = list(
+                                        set(child_room.parent_rooms)
+                                    )
+                            if incumbent.type != cell.type:
+                                cell.type == "combat"
                         drawing_with_gaps[y_coord][x_coord] = cell
                         drawing_with_gaps[cell.y][cell.x] = map_room("void")
                         drawing_with_gaps[cell.y][cell.x].x = cell.x
@@ -429,22 +420,13 @@ class map:
                             room.sibling_connection = next_room
 
     def pretty_print_drawing(self, drawing):
-        print("pretty_printing!")
         for row in drawing:
             print_row = ""
             for cell in row:
                 if not cell:
-                    print_row += " "
+                    print_row += "!"
                 elif cell.type in ("vgap", "hgap", "xgap", "void"):
                     print_row += " "
-                elif cell.type == "elite":
-                    print_row += "E"
-                elif cell.type == "combat":
-                    print_row += "c"
-                elif cell.type == "shop":
-                    print_row += "$"
-                elif cell.type == "quest":
-                    print_row += "?"
                 elif cell.type == "hpath":
                     print_row += "-"
                 elif cell.type == "vpath":
@@ -455,6 +437,16 @@ class map:
                     print_row += "/"
                 elif cell.type == "xpath":
                     print_row += "X"
+                elif cell.type != "palace" and not any(cell.parent_rooms):
+                    print_row += "!"
+                elif cell.type == "elite":
+                    print_row += "E"
+                elif cell.type == "combat":
+                    print_row += "c"
+                elif cell.type == "shop":
+                    print_row += "$"
+                elif cell.type == "quest":
+                    print_row += "?"
                 elif cell.type == "camp":
                     print_row += "r"
                 elif cell.type == "palace":
