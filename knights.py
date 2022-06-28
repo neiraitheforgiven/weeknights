@@ -1,4 +1,5 @@
 import dice
+import itertools
 import random
 
 
@@ -86,10 +87,11 @@ class game_rules:
 class map:
     """Heavily borrowed from aztuk's reverse engineered Slay the Spire map generator"""
 
-    def __init__(self, game_rules, depth=7):
+    def __init__(self, game_rules, depth=6):
         self.game_rules = game_rules
         self.rings = []
         self.depth = depth
+        self.starter_tiles = []
         for i in range(self.depth):
             rooms = list()
             for j in range((i + 1) * 8):
@@ -116,7 +118,6 @@ class map:
             drawing.append([None for x in range(size)])
         # that should give you a 'square' of Nones. Now...
         for i, ring in reversed(list(enumerate(self.rings))):
-            print(f"ring {i}: {ring}")
             offset = depth - (i + 1)
             backset = (len(drawing) - 1) - offset
             current_cell_from_start = 0
@@ -134,15 +135,22 @@ class map:
                 current_cell_from_start += 1
             for cid, cell in reversed(list(enumerate(reverse_row))):
                 if offset <= cid <= backset:
-                    drawing[(backset) - offset][cid] = ring[current_cell_from_start]
+                    drawing[(backset)][cid] = ring[current_cell_from_start]
                     current_cell_from_start += 1
             for rid, row in reversed(list(enumerate(the_rest_of_the_rows))):
                 cell = offset
                 drawing[rid + offset + 1][cell] = ring[current_cell_from_start]
                 current_cell_from_start += 1
+            print(f"{i}: {[cell.id if cell else 'None' for cell in ring]}")
+        for row in drawing:
+            print(f"{[cell.id if cell else 'None' for cell in row]}")
         # there will be a central tile that should become the palace
-        drawing[depth + 1][depth + 1] = map_room("palace")
+        drawing[depth][depth] = map_room("palace")
+        drawing[depth][depth].child_rooms = self.starter_tiles
+        for starter_tile in self.starter_tiles:
+            starter_tile.parent_rooms.append(drawing[depth][depth])
         # now add a horizontal gap between each of the elements in each row
+        print
         drawing_with_gaps = []
         for row in drawing:
             gapped_row = []
@@ -181,23 +189,6 @@ class map:
                     cell = drawing_with_gaps[y][x]
                 cell.x = x
                 cell.y = y
-        for row in drawing_with_gaps:
-            for cell in row:
-                if cell and "gap" not in cell.type and "void" not in cell.type:
-                    print(f"cell {cell.type} at {cell.x}, {cell.y}:")
-                    print("  child_rooms:")
-                    print(f"    {[concell.type for concell in cell.child_rooms]}")
-                    print(f"    {[concell.x for concell in cell.child_rooms]}")
-                    print(f"    {[concell.y for concell in cell.child_rooms]}")
-                    print("  parent_rooms:")
-                    print(f"    {[concell.type for concell in cell.parent_rooms]}")
-                    print(f"    {[concell.x for concell in cell.parent_rooms]}")
-                    print(f"    {[concell.y for concell in cell.parent_rooms]}")
-                    if cell.sibling_connection:
-                        print("  sibling_connection:")
-                        print(
-                            f"{cell.sibling_connection.type} {cell.sibling_connection.x}, {cell.sibling_connection.y}"
-                        )
         # now, draw paths for all of the kinds of gaps
         for y, row in enumerate(drawing_with_gaps):
             for x, cell in enumerate(row):
@@ -273,7 +264,8 @@ class map:
         for room in first_room_seeds:
             self.rings[0][room] = map_room("combat", room)
             self.rings[0][room].owed_paths += 1
-        for ring in range(self.depth):
+            self.starter_tiles.append(self.rings[0][room])
+        for r, ring in enumerate(range(self.depth)):
             # get all the rooms on this floor
             rooms = [room for room in self.rings[ring] if room]
             # get four random rooms on this floor and increment their owed_paths by 1
@@ -393,6 +385,9 @@ class map:
 
 
 class map_room:
+
+    id_iter = itertools.count()
+
     def __init__(self, map_type=None, source_id=None):
         self.type = map_type
         self.child_rooms = []
@@ -403,6 +398,7 @@ class map_room:
         self.offset_from_source = 0
         self.x = None
         self.y = None
+        self.id = next(map_room.id_iter)
 
     def get_next_room(self, ring):
         my_num = ring.index(self)
