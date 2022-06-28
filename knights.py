@@ -189,6 +189,9 @@ class map:
                     cell = drawing_with_gaps[y][x]
                 cell.x = x
                 cell.y = y
+        drawing_with_gaps, stuff_moved = self.fix_alignment(drawing_with_gaps)
+        while stuff_moved:
+            drawing_with_gaps, stuff_moved = self.fix_alignment(drawing_with_gaps)
         # now, draw paths for all of the kinds of gaps
         for y, row in enumerate(drawing_with_gaps):
             for x, cell in enumerate(row):
@@ -258,6 +261,81 @@ class map:
                         elif descend:
                             cell.type = "descpath"
         self.pretty_print_drawing(drawing_with_gaps)
+
+    def fix_alignment(self, drawing_with_gaps):
+        print("FIXING ALIGNMENT")
+        for row in drawing_with_gaps:
+            print(
+                f'{[cell.id if cell and cell.type in ("elite", "combat", "shop", "quest", "camp") else " " for cell in row]}'
+            )
+        # there is a bug where a room can end up too far away from its parents.
+        # move rooms to fix that problem
+        for r, row in enumerate(drawing_with_gaps):
+            for c, cell in enumerate(row):
+                if cell and cell.type in ("elite", "combat", "shop", "quest", "camp"):
+                    min_x = None
+                    max_x = None
+                    min_y = None
+                    max_y = None
+                    print(
+                        f"checking alignment of row {r} cell {c} {cell.type} {cell.id} at {cell.x},{cell.y}..."
+                    )
+                    for parent in cell.parent_rooms:
+                        print(
+                            f"    ...against parent {parent.type} {parent.id} at {parent.x},{parent.y}"
+                        )
+                        parent_x = parent.x
+                        if (min_x is not None and parent_x < min_x) or min_x is None:
+                            min_x = parent_x
+                        if (max_x is not None and parent_x > max_x) or max_x is None:
+                            max_x = parent_x
+                        parent_y = parent.y
+                        if (min_y is not None and parent_y < min_y) or min_y is None:
+                            min_y = parent_y
+                        if (max_y is not None and parent_y > max_y) or max_y is None:
+                            max_y = parent_y
+                    x_coord = cell.x
+                    y_coord = cell.y
+                    conflict = False
+                    x_updated = False
+                    y_updated = False
+                    if x_coord < max_x - 2:
+                        print(f"x_coord {x_coord} below {max_x - 2}")
+                        x_coord = max_x - 2
+                        x_updated = True
+                    if x_coord > min_x + 2:
+                        print(f"x_coord {x_coord} above {min_x + 2}")
+                        if not x_updated:
+                            x_coord = min_x + 2
+                        else:
+                            conflict = True
+                    if y_coord < max_y - 2:
+                        print(f"y_coord {y_coord} below {min_y - 2}")
+                        y_coord = max_y - 2
+                        y_updated = True
+                    if y_coord > min_y + 2:
+                        print(f"y_coord {y_coord} above {min_y + 2}")
+                        if not y_updated:
+                            y_coord = min_y + 2
+                        else:
+                            conflict = True
+                    if conflict:
+                        print("removing conflicting parent!")
+                        cell.parent_rooms.pop()
+                        return drawing_with_gaps, True
+                    if x_coord != cell.x or y_coord != cell.y:
+                        print(
+                            f"moving row {r} cell {c} {cell.type} {cell.id} from {cell.x},{cell.y} to {x_coord},{y_coord}"
+                        )
+                        # move the room
+                        drawing_with_gaps[y_coord][x_coord] = cell
+                        drawing_with_gaps[cell.y][cell.x] = map_room("void")
+                        drawing_with_gaps[cell.y][cell.x].x = cell.x
+                        drawing_with_gaps[cell.y][cell.x].y = cell.y
+                        cell.x = x_coord
+                        cell.y = y_coord
+                        return drawing_with_gaps, True
+        return drawing_with_gaps, False
 
     def generate_paths(self, first_room_seeds):
         # combat_unlocked = True
