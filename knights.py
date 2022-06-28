@@ -338,12 +338,12 @@ class map:
             down_cell = drawing[source_y + 1][source_x]
             return down_cell, up_cell
 
-    def get_random_cell_of_ring(self, ring, connection_room=None):
+    def get_random_cell_of_ring(self, ring, connection_room_index):
         lower_limit = 0
         upper_limit = len(ring) - 1
-        if connection_room:
-            lower_limit = max(connection_room - 1, lower_limit)
-            upper_limit = min(connection_room + 1, upper_limit)
+        if connection_room_index:
+            lower_limit = max(connection_room_index - 1, lower_limit)
+            upper_limit = min(connection_room_index + 1, upper_limit)
         room = random.randint(lower_limit, upper_limit)
         return room
 
