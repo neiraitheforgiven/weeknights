@@ -37,12 +37,14 @@ class monster:
     def __init__(self, difficulty, game_rules):
         self.hp = 1
         self.difficulty = difficulty
-        self.ranks = []
-        for color in game_rules:
-            self.ranks.append(color, 2)
+        self.ranks = {}
+        for color in game_rules.colors:
+            self.ranks[color] = 2
         for i in range(0, difficulty + 1):
-            random_rank = random.choice(self.ranks)
-            random_rank[1] += 1
+            random_rank = random.choice([rank for rank in self.ranks])
+            self.ranks[random_rank] += 1
+        for rank in self.ranks:
+            print(f"{rank}: {self.ranks[rank]}")
 
 
 class game_rules:
@@ -72,9 +74,9 @@ class game_rules:
         self.tiles = {}
         self.tiles["shop"] = 8
         self.tiles["camp"] = 12
-        self.tiles["quest"] = 12
-        self.tiles["elite"] = 10
-        self.tiles["combat"] = 53
+        self.tiles["quest"] = 24
+        self.tiles["elite"] = 15
+        self.tiles["combat"] = 42
 
     def set_colors(self, party):
         # unselected colors will not be in the game
@@ -87,7 +89,7 @@ class game_rules:
 class map:
     """Heavily borrowed from aztuk's reverse engineered Slay the Spire map generator"""
 
-    def __init__(self, game_rules, depth=8):
+    def __init__(self, game_rules, depth=7):
         self.game_rules = game_rules
         self.rings = []
         self.depth = depth
@@ -516,7 +518,7 @@ class game:
             ]
             options = random.sample(knights, 3)
             for i, option in enumerate(options):
-                print(f"({i}) {option}, {self.game_rules.knights[option]}")
+                print(f"({i+1}) {option}, {self.game_rules.knights[option]}")
             choice = ""
             while choice not in ("1", "2", "3", "q", "Q"):
                 choice = input("Choose a knight or press (Q) to quit: ")
@@ -534,6 +536,17 @@ class game:
         print("Colors:")
         print(f"{self.game_rules.colors}")
         self.map = map(self.game_rules)
+        while True:
+            difficulty = int(input("How difficult is the current challenge? "))
+            # print(
+            #     f"Your party is: {[i + ' ' + party_member.name for i, party_member in enumerate(self.party)]}"
+            # )
+            # party = input(
+            #     "who is there? Give me a list of numbers, according to the above party... "
+            # )
+            my_monster = monster(difficulty, self.game_rules)
+            print(my_monster)
+            # reward = reward(party, self.game_rules)
 
 
 game()
