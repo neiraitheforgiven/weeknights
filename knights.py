@@ -553,21 +553,17 @@ class game:
             party = input(
                 "who is there? Give me a list of numbers, according to the above party... "
             )
-            my_monster = monster(difficulty, self.game_rules)
+            monster(difficulty, self.game_rules)
             self.reward(party)
 
     def reward(self, party=[]):
         colors = []
-        knights = []
-        if isinstance(party, str):
-            party = [int(party)]
-        elif isinstance(party, int):
-            party = [party]
-        if isinstance(party, list):
-            for id in party:
-                knight = self.party[id]
-                for color in knight.colors:
-                    colors.append(color)
+        party = party.split(",")
+        for id in party:
+            id = int(id)
+            knight = self.party[id]
+            for color in knight.colors:
+                colors.append(color)
 
         colors = list(set(colors))
         rewards = []
