@@ -71,6 +71,15 @@ class game_rules:
         self.knights["Tinkerbelle"] = ["brown", "pink"]
         self.knights["Tooth Collector"] = ["green", "pink"]
         self.knights["Will o' the Wisp"] = ["red", "white"]
+
+        self.rewards = {}
+        self.rewards["bonus"] = 12
+        self.rewards["minimum"] = 12
+        self.rewards["rerolls"] = 12
+        self.rewards["splodey"] = 6
+        self.rewards["size"] = 2
+        self.rewards["count"] = 1
+
         self.tiles = {}
         self.tiles["shop"] = 8
         self.tiles["camp"] = 12
@@ -538,15 +547,44 @@ class game:
         self.map = map(self.game_rules)
         while True:
             difficulty = int(input("How difficult is the current challenge? "))
-            # print(
-            #     f"Your party is: {[i + ' ' + party_member.name for i, party_member in enumerate(self.party)]}"
-            # )
-            # party = input(
-            #     "who is there? Give me a list of numbers, according to the above party... "
-            # )
+            print(
+                f"Your party is: {[str(i) + ' ' + party_member.name for i, party_member in enumerate(self.party)]}"
+            )
+            party = input(
+                "who is there? Give me a list of numbers, according to the above party... "
+            )
             my_monster = monster(difficulty, self.game_rules)
-            print(my_monster)
-            # reward = reward(party, self.game_rules)
+            self.reward(party)
+
+    def reward(self, party=[]):
+        colors = []
+        knights = []
+        if isinstance(party, str):
+            party = [int(party)]
+        elif isinstance(party, int):
+            party = [party]
+        if isinstance(party, list):
+            for id in party:
+                knight = self.party[id]
+                for color in knight.colors:
+                    colors.append(color)
+
+        colors = list(set(colors))
+        rewards = []
+        for x in range(3):
+            color = random.choice(colors)
+            reward_options = [
+                reward
+                for reward in self.game_rules.rewards
+                if [color, reward] not in rewards
+            ]
+            reward_weights = [
+                self.game_rules.rewards[reward] for reward in reward_options
+            ]
+            picked_rewards = random.choices(reward_options, reward_weights, k=1)
+            picked_reward = picked_rewards[0]
+            rewards.append([color, picked_reward])
+        print(rewards)
 
 
 game()
